@@ -21,5 +21,35 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 
+const port = 3000;
+
+function handleRequest( req, res ){
+     
+    // Construct the path to the 'files' directory 
+    const directoryPath = path.join(--dirname, 'files');
+
+    fs.readdir( directoryPath, (err, files ) => {
+      if(err) {
+        console.errorr(err);
+        res.status(500).json({ error: 'An error occurred while reading the directory.'});
+      }
+      else{
+        // send the list of files as a json response
+        res.status(200).json(files);
+      }
+    });
+
+}
+
+app.get('/files', handleRequest );
+
+function started(){
+  console.log(`Example app listening on port ${port}`);
+}
+
+app.listen( port, started );
+
+
+
 
 module.exports = app;
