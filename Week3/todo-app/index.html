@@ -7,6 +7,24 @@
 </head>
 
 <script>
+
+    function todoCallback(data){
+        console.log(data);
+        var parentElement = document.getElementById("mainArea");
+        parentElement.innerHTML = JSON.stringify(data);
+    }
+
+    function getDataCallback(resp){
+        resp.json().then(todoCallback);
+    }
+    
+    function getData(){
+       fetch("http://localhost:3000/todos", {
+         method : "GET"
+       }).then(getDataCallback)
+    }     
+    
+    getData();
     
     function parsedResponse(data) {
         console.log(data);
@@ -15,16 +33,7 @@
     function callback(resp){
         resp.json().then(parsedResponse);
     }
-    
 
-    // // get request 
-    // function onPress(){
-    //    fetch("http://localhost:3000/todos", {
-    //      method : "GET"
-    //    }).then(callback)
-    // } 
-
-    // post request 
     function onPress(){
         var title = document.getElementById("title").value;
         var description = document.getElementById("description").value;
@@ -52,5 +61,6 @@
     <br> <br>
     <button onclick="onPress()">send todo</button>
     
+    <div id="mainArea"></div>
 </body>
 <!-- </html> -->
