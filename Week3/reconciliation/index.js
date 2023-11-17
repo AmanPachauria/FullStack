@@ -37,4 +37,4 @@ window.setInterval(() => {
     }
     
     createDomElement(todos);
-}, 2000)
+}, 3000)
