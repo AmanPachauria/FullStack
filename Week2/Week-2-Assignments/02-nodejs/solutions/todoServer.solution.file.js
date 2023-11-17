@@ -13,6 +13,7 @@ function findIndex(arr, id) {
   return -1;
 }
 
+
 function removeAtIndex(arr, index) {
   let newArray = [];
   for (let i = 0; i < arr.length; i++) {
@@ -103,4 +104,6 @@ app.use((req, res, next) => {
   res.status(404).send();
 });
 
-module.exports = app;
+app.listen(3000);
+
+// module.exports = app;
