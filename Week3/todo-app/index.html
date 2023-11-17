@@ -8,10 +8,45 @@
 
 <script>
 
+    function deleteDone(deletedTodo) {
+        console.log("done delete");
+        
+    }
+
+    function deleteTodo(id) {
+        console.log(id);
+        fetch("http://localhost:3000/todos/" + id, {
+            method : "DELETE",
+            headers:{
+                "Content-Type": "application/json"
+            }
+        }).then(deleteDone);
+    }
+
     function todoCallback(data){
         console.log(data);
         var parentElement = document.getElementById("mainArea");
-        parentElement.innerHTML = JSON.stringify(data);
+        
+        for( var i = 0; i < data.length; i++ ){
+
+            var childElement = document.createElement("div");
+
+            var grandChileElement1 = document.createElement("span");
+            grandChileElement1.innerHTML = data[i].title;
+
+            var grandChileElement2 = document.createElement("span");
+            grandChileElement2.innerHTML = data[i].description;
+
+            var grandChileElement3 = document.createElement("button");
+            grandChileElement3.innerHTML = "Delete";
+            grandChileElement3.setAttribute("onclick", "deleteTodo(" + data[i].id + ")");
+
+            childElement.appendChild(grandChileElement1);
+            childElement.appendChild(grandChileElement2);
+            childElement.appendChild(grandChileElement3);
+
+            parentElement.appendChild(childElement);
+        }
     }
 
     function getDataCallback(resp){
@@ -28,6 +63,25 @@
     
     function parsedResponse(data) {
         console.log(data);
+
+        var parentElement = document.getElementById("mainArea");
+
+        var childElement = document.createElement("div");
+
+        var grandChileElement1 = document.createElement("span");
+        grandChileElement1.innerHTML = data.title;
+
+        var grandChileElement2 = document.createElement("span");
+        grandChileElement2.innerHTML = data.description;
+
+        var grandChileElement3 = document.createElement("button");
+        grandChileElement3.innerHTML = "Delete";
+
+        childElement.appendChild(grandChileElement1);
+        childElement.appendChild(grandChileElement2);
+        childElement.appendChild(grandChileElement3);
+
+        parentElement.appendChild(childElement);
     }
 
     function callback(resp){
@@ -47,7 +101,7 @@
             headers:{
                 "Content-Type": "application/json"
             }
-        })
+        }).then(callback);
     }
 </script>
 
@@ -60,7 +114,7 @@
     <input type="text" id="description"></input>
     <br> <br>
     <button onclick="onPress()">send todo</button>
-    
+    <br> <br>
     <div id="mainArea"></div>
 </body>
 <!-- </html> -->
