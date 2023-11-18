@@ -46,6 +46,11 @@ app.post('/admin/login', adminAuthentication, (req, res) => {
 
 app.post('/admin/courses', adminAuthentication, (req, res) => {
   const course = req.body;
+  
+  console.log(Date.now());
+  const timestamp = 1700311264035;
+  const date = new Date(timestamp);
+  console.log(date);
 
   course.id = Date.now(); // use timestamp as course ID
   COURSES.push(course);
@@ -54,6 +59,8 @@ app.post('/admin/courses', adminAuthentication, (req, res) => {
 
 app.put('/admin/courses/:courseId', adminAuthentication, (req, res) => {
   const courseId = parseInt(req.params.courseId);
+  // we are coping here reference of array object not coping them so if we will 
+  // update somthing in course thea also we updated in COURSES 
   const course = COURSES.find(c => c.id === courseId);
   if (course) {
     Object.assign(course, req.body);
