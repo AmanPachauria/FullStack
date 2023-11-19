@@ -46,11 +46,6 @@ app.post('/admin/login', adminAuthentication, (req, res) => {
 
 app.post('/admin/courses', adminAuthentication, (req, res) => {
   const course = req.body;
-  
-  console.log(Date.now());
-  const timestamp = 1700311264035;
-  const date = new Date(timestamp);
-  console.log(date);
 
   course.id = Date.now(); // use timestamp as course ID
   COURSES.push(course);
