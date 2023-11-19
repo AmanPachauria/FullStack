@@ -7,5 +7,15 @@ const express = require("express");
 const app = express();
 
 
-this line add middleware to the express application 
+// this line add middleware to the express application 
+// middleware functions are functions that have access to the request, responce and next middleware function 
+
+// here express.json() parse incoming json request and put data into body so we can use it easily 
 app.use(express.json());
+
+let ADMIN = [];
+let USERS = [];
+let COURSES = [];
+
+
+// request for admin signup 
