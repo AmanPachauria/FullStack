@@ -2,6 +2,9 @@
 // now const express holds the express.js framwork 
 const express = require("express");
 
+
+const jwt = require("jsonwebtoken");
+
 // here we are creating in instance express application
 // now using app we can object we will configure routes, middleware and handle https request
 const app = express();
@@ -17,33 +20,34 @@ let ADMIN = [];
 let USERS = [];
 let COURSES = [];
 
-// admin authentication
 
-function authenticationAdmin(req, res, next){
-    const admin = req.headers;
-    const adminexist = ADMIN.find( a => a.username === admin.username && a.password === admin.password );
-    if( adminexist ){
-        next();
-    }
-    else{
-        res.status(403).json({message : "Admin doesn't exist"});
-    }
+const secretKey = "superSecret1e123456789";
+
+
+function generateJwt(user){
+    const payload = { username : user.username, };
+    return jwt.sign(payload, secretKey, { expiresIn : "1h"});
 }
 
+function jwtAuthentication(req, res, next) {
+    const authHeader = req.headers.authorization;
 
+    if( authHeader ){
+        // here we are copying token from authHeader using split 
+       // split convert a string into array based on space
+       const token = authHeader.split(' ')[1];
 
-// User authenticatin 
-function authenticationUser(req, res, next){
-    const { username, password } = req.headers;
-    const user = USERS.find( a => a.username === username && a.password === password );
-    if( user ){
-        // we are adding this object so we can access objects throw request 
-        // using this line we can use and update user object in next function 
-        req.user = user;
-        next();
+       jwt.verify(token, secretKey, (err, user) => {
+           if (err) {
+              res.sendstatus(403);
+           }
+
+           req.user = user;
+           next();
+       })
     }
     else{
-        res.status(404).json({message : "User doesn't exist"})
+        res.status(403).json({message : "Please Enter valid authorization key"});
     }
 }
 
@@ -56,19 +60,29 @@ app.post("/admin/signup", (req, res) => {
     }
     else{
         ADMIN.push(admin);
-        res.status(200).json({message: "Admin created succesfully"})
+        const token = generateJwt(admin);
+        res.status(200).json({message: "Admin created succesfully", token})
     }
 })
 
 
 // request fo admin login 
-app.post("/admin/login", authenticationAdmin, (req, res) => {
-     res.status(201).json({message : "Admin login succesfully"});
+app.post("/admin/login", (req, res) => {
+     const {username, password} = req.headers;
+     const admin = ADMIN.find( a => a.username === username && a.password === password );
+     if( admin ){
+        const token = generateJwt(admin);
+        res.json({message : "Admin login succesfully", token});
+     }
+     else{
+        res.status(403).json({message : "Admin not found"});
+     }
+     
 })
 
 
 // create a new course 
-app.post("/admin/courses", authenticationAdmin, (req, res) => {
+app.post("/admin/courses", jwtAuthentication, (req, res) => {
     const course = req.body;
 
     course.id = Date.now();
@@ -77,7 +91,7 @@ app.post("/admin/courses", authenticationAdmin, (req, res) => {
 })
 
 // update exist course using id 
-app.put("/admin/courses/:courseId", authenticationAdmin, (req, res) => {
+app.put("/admin/courses/:courseId", jwtAuthentication, (req, res) => {
     // parseInt built in javascript function that convert string to integer 
     // params contain all the route acces 
     const courseId = parseInt(req.params.courseId);
@@ -96,7 +110,7 @@ app.put("/admin/courses/:courseId", authenticationAdmin, (req, res) => {
 })
 
 // get all the course 
-app.get("/admin/courses", authenticationAdmin, (req, res) => {
+app.get("/admin/courses", jwtAuthentication, (req, res) => {
     res.status(201).json(COURSES);
 })
 
@@ -118,21 +132,31 @@ app.post("/users/signup", (req, res) => {
     else{
 
         USERS.push(user);
-        res.status(201).json({message : "User created succesfully"})
+        const token = generateJwt(user);
+        res.status(201).json({message : "User created succesfully", token})
     }
 })
 
 // user login 
-app.post("/users/login", authenticationUser, (req, res ) => {
-     res.status(201).json({message: "User login succesfully"});
+app.post("/users/login", (req, res ) => {
+    const {username, password} = req.headers;
+    const user = USERS.find( a => a.username === username && a.password === password );
+
+    if( user ){
+        const token = generateJwt(user);
+        res.status(201).json({message: "User login succesfully", token});
+    }
+    else{
+        res.status(403).json({message : "User authentication failed"});
+    }
 } )
 
 
 // get all course that are for user or published 
-app.get("/users/courses", authenticationUser, (req, res) => {
+app.get("/users/courses", jwtAuthentication, (req, res) => {
     let filteredCourses = [];
     for( let i = 0; i < COURSES.length; i++ ){
-        if( COURSES[i].published ){
+        if( COURSES[i].published === true){
             filteredCourses.push(COURSES[i]);
         }
     }
@@ -140,29 +164,37 @@ app.get("/users/courses", authenticationUser, (req, res) => {
     res.json({courses : filteredCourses});
 })
 
-app.post('/users/courses/:courseId', authenticationUser, (req, res) => {
+app.post('/users/courses/:courseId', jwtAuthentication, (req, res) => {
     const courseId = parseInt(req.params.courseId);
     const course = COURSES.find(a => a.id === courseId && a.published);
     if (course) {
-    //   this id will store in user purchasedCourses array 
-      req.user.purchasedCourses.push(courseId);
-      res.json({ message: 'Course purchased successfully' });
+
+        const user = USERS.find( a => a.username === req.user.username );
+        if( user ){
+            if( ! user.purchasedCourses ){
+                user.purchasedCourses = [];
+            }
+             //   this id will store in user purchasedCourses array 
+             user.purchasedCourses.push(course);
+             res.json({ message: 'Course purchased successfully' });
+        }
+        else{
+            res.status(404).json({ message: 'User not available' });
+        }
     } else {
       res.status(404).json({ message: 'Course not found or not available' });
     }
 });
 
-app.get("/users/purchasedCourses", authenticationUser, (req, res) => {
-    const purchasedCourseIds = req.user.purchasedCourses;
-    let allPurchasedCourses = [];
-    for( let i = 0; i < purchasedCourseIds.length; i++ ){
-        const checkCourse = COURSES.find( a => a.id === purchasedCourseIds[i] );
-        if( checkCourse ){
-            allPurchasedCourses.push(checkCourse)
-        }
-    }
+app.get("/users/purchasedCourses", jwtAuthentication, (req, res) => {
 
-    res.json(allPurchasedCourses);
+    const user = USERS.find( a => a.username === req.user.username )
+    if( user && user.purchasedCourses ){
+        res.json({courses : user.purchasedCourses })
+    }
+    else{
+        res.json({message : "User not found"});
+    }
 })
 
 app.listen(3000, () => {
