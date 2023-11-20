@@ -34,13 +34,16 @@ function authenticationAdmin(req, res, next){
 
 // User authenticatin 
 function authenticationUser(req, res, next){
-    const user = req.headers;
-    const userexist = USERS.find( a => a.username === user.username && a.password === user.password );
-    if( userexist ){
+    const { username, password } = req.headers;
+    const user = USERS.find( a => a.username === username && a.password === password );
+    if( user ){
+        // we are adding this object so we can access objects throw request 
+        // using this line we can use and update user object in next function 
+        req.user = user;
         next();
     }
     else{
-        res.status(404).json({massage : "User doesn't exist"})
+        res.status(404).json({message : "User doesn't exist"})
     }
 }
 
@@ -84,10 +87,10 @@ app.put("/admin/courses/:courseId", authenticationAdmin, (req, res) => {
     const course = COURSES.find( a => a.id === courseId );
     if( course ){
         Object.assign( course, req.body);
-        res.status(200).json({massage : "Course updated succefully"});
+        res.status(200).json({message : "Course updated succefully"});
     }
     else{
-        res.status(404).json({massage : "Course doesn't exist"});
+        res.status(404).json({message : "Course doesn't exist"});
     }
 
 })
@@ -101,26 +104,32 @@ app.get("/admin/courses", authenticationAdmin, (req, res) => {
 
 
 // user signup 
-app.post("/user/signup", (req, res) => {
-    const user = req.body;
+app.post("/users/signup", (req, res) => {
+
+    const user = {
+        username : req.body.username,
+        password : req.body.password,
+        purchasedCourses : []
+    }
     const existingUser = USERS.find( a => a.username === user.username || a.password === user.password );
     if( existingUser ){
-        res.status(404).json({massage : "User allready exist with same username or Password" })
+        res.status(404).json({message : "User allready exist with same username or Password" })
     }
     else{
+
         USERS.push(user);
-        res.status(201).json({massage : "User created succesfully"})
+        res.status(201).json({message : "User created succesfully"})
     }
 })
 
 // user login 
-app.post("/user/login", authenticationUser, (req, res ) => {
-     res.status(201).json({massage: "User login succesfully"});
+app.post("/users/login", authenticationUser, (req, res ) => {
+     res.status(201).json({message: "User login succesfully"});
 } )
 
 
 // get all course that are for user or published 
-app.get("/user/courses", authenticationUser, (req, res) => {
+app.get("/users/courses", authenticationUser, (req, res) => {
     let filteredCourses = [];
     for( let i = 0; i < COURSES.length; i++ ){
         if( COURSES[i].published ){
@@ -131,7 +140,30 @@ app.get("/user/courses", authenticationUser, (req, res) => {
     res.json({courses : filteredCourses});
 })
 
+app.post('/users/courses/:courseId', authenticationUser, (req, res) => {
+    const courseId = parseInt(req.params.courseId);
+    const course = COURSES.find(a => a.id === courseId && a.published);
+    if (course) {
+    //   this id will store in user purchasedCourses array 
+      req.user.purchasedCourses.push(courseId);
+      res.json({ message: 'Course purchased successfully' });
+    } else {
+      res.status(404).json({ message: 'Course not found or not available' });
+    }
+});
 
+app.get("/users/purchasedCourses", authenticationUser, (req, res) => {
+    const purchasedCourseIds = req.user.purchasedCourses;
+    let allPurchasedCourses = [];
+    for( let i = 0; i < purchasedCourseIds.length; i++ ){
+        const checkCourse = COURSES.find( a => a.id === purchasedCourseIds[i] );
+        if( checkCourse ){
+            allPurchasedCourses.push(checkCourse)
+        }
+    }
+
+    res.json(allPurchasedCourses);
+})
 
 app.listen(3000, () => {
     console.log("Server listen on Port 3000")
