@@ -11,6 +11,8 @@ const SECRET = 'SECr3t';  // This should be in an environment variable in a real
 const userSchema = new mongoose.Schema({
   username: {type: String},
   password: String,
+  // here in array each element represant two object the first one is objectId 
+  // and the second one is Course reference 
   purchasedCourses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }]
 });
 
@@ -49,7 +51,6 @@ const authenticateJwt = (req, res, next) => {
 };
 
 // Connect to MongoDB
-// DONT MISUSE THIS THANKYOU!!
 mongoose.connect('mongodb+srv://course-app:zMJp27n%23hW%232.W_@cluster0.zttzvi3.mongodb.net/courses', { useNewUrlParser: true, useUnifiedTopology: true, dbName: "courses" });
 
 app.post('/admin/signup', (req, res) => {
@@ -59,18 +60,23 @@ app.post('/admin/signup', (req, res) => {
       res.status(403).json({ message: 'Admin already exists' });
     } else {
       const obj = { username: username, password: password };
+      // add new obj to the Admin 
       const newAdmin = new Admin(obj);
+      // save to mongodb 
       newAdmin.save();
       const token = jwt.sign({ username, role: 'admin' }, SECRET, { expiresIn: '1h' });
       res.json({ message: 'Admin created successfully', token });
     }
 
   }
+  // find username to the Admin 
   Admin.findOne({ username }).then(callback);
 });
 
 app.post('/admin/login', async (req, res) => {
   const { username, password } = req.headers;
+  // without await Admin.findOne code will be continue running while the database query is still progress 
+  // so this can leed to esue because we might use Admin 
   const admin = await Admin.findOne({ username, password });
   if (admin) {
     const token = jwt.sign({ username, role: 'admin' }, SECRET, { expiresIn: '1h' });
@@ -81,13 +87,18 @@ app.post('/admin/login', async (req, res) => {
 });
 
 app.post('/admin/courses', authenticateJwt, async (req, res) => {
+
+  // creating a new mongoose model using data presant in req.body 
   const course = new Course(req.body);
+  // save mongoose model in mongodb 
   await course.save();
   res.json({ message: 'Course created successfully', courseId: course.id });
 });
 
 app.put('/admin/courses/:courseId', authenticateJwt, async (req, res) => {
+
   const course = await Course.findByIdAndUpdate(req.params.courseId, req.body, { new: true });
+
   if (course) {
     res.json({ message: 'Course updated successfully' });
   } else {
