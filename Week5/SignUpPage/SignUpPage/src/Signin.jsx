@@ -3,7 +3,7 @@ import TextField from '@mui/material/TextField';
 import Card from '@mui/material/Card';
 import Typography from '@mui/material/Typography';
 
-function Signup(){
+function Signin(){
     
     // div element is used to group and structure html content 
     return <div>
@@ -16,7 +16,7 @@ function Signup(){
                 justifyContent: "center",
             }}>
                 <Typography variant={"h6"}>
-                     Welcome to cousera. Sign up below
+                     Welcome Back. Sign in below
                 </Typography>
                 
             </div>
@@ -46,7 +46,7 @@ function Signup(){
                     variant="outlined" 
                     type='password'/>
                 <br /> <br />
-                <Button size={'large'} variant="contained">Sign up</Button>
+                <Button size={'large'} variant="contained">Sign in</Button>
             </Card>
 
         </div>
@@ -57,4 +57,4 @@ function Signup(){
 }
 
 
-export default Signup;
+export default Signin;
