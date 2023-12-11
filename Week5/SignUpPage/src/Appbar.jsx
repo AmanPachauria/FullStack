@@ -1,7 +1,10 @@
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
+import {useNavigate} from 'react-router-dom';
 
 function Appbar(){
+
+    const navigate = useNavigate();
 
     return <div style={{
         display: "flex",
@@ -19,7 +22,8 @@ function Appbar(){
                <Button 
                     variant={"contained"}
                     onClick={()=> {
-                        window.location = "/signup";
+                        // window.location = "/signup";
+                        navigate("/signup");
                     }}
                
                 >
@@ -33,7 +37,8 @@ function Appbar(){
                <Button 
                     variant={"contained"}
                     onClick={()=> {
-                        window.location = "/signin";
+                        navigate("/signin");
+                        // window.location = "/signin";
                     }}
                
                

@@ -4,6 +4,7 @@ import Card from '@mui/material/Card';
 import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 
+
 function Signup(){
     
     // live update for text input and anything 
@@ -33,7 +34,7 @@ function Signup(){
             display: "flex",
             justifyContent: "center",
         }}>
-            <Card varint={"outlined"} style={{
+            <Card variant={"outlined"} style={{
                 width : 300,
                 padding : 20,
             }}>
@@ -48,8 +49,8 @@ function Signup(){
                  <br /> <br />
 
                 <TextField
-                    onChange={(e1) => {
-                        setPassword(e1.target.value);
+                    onChange={(e) => {
+                        setPassword(e.target.value);
                     }}
                     fullWidth={true} 
                     label="Password" 
@@ -61,7 +62,8 @@ function Signup(){
                    onClick={ () => {
                         
                        function callback2(data){
-                           console.log(data);
+                           localStorage.setItem("token", data.token);
+                           alert("Signup Completed")
                        }
 
                        function callback1(res){
